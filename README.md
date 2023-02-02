@@ -37,33 +37,23 @@ UNION ALL
 Another idea for the query:
 ```
 SELECT
-    ROW_NUMBER() OVER (ORDER BY CASE WHEN otherDomain = 'Others' THEN 1 ELSE 0 END, SUM(n) DESC) AS nr,
-    otherDomain,
-    SUM(n)
-FROM (
-    SELECT
-        CASE WHEN nr >= 11 THEN 'Others' ELSE domain END AS otherDomain,
-        n
-    FROM ( 
-        SELECT 
-            ROW_NUMBER() OVER (ORDER BY COUNT(*) DESC) AS nr, 
-            IF(
+    CASE WHEN nr >= 11 THEN 'Others' ELSE modifyUrl END AS Domain,
+    SUM(n) AS Impressions
+FROM ( 
+	    SELECT 
+	        ROW_NUMBER() OVER (ORDER BY COUNT(id) DESC) AS nr, 
+	        IF(
 		        CHARACTER_LENGTH(SUBSTRING_INDEX(SUBSTRING_INDEX(SUBSTRING_INDEX(SUBSTRING_INDEX(REPLACE(url, "www.", ""), '/', 3), '://', -1), '?', 1), '.', -2)) > 6,
 		        SUBSTRING_INDEX(SUBSTRING_INDEX(SUBSTRING_INDEX(SUBSTRING_INDEX(REPLACE(url, "www.", ""), '/', 3), '://', -1), '.', -2), '?', 1),
 		        SUBSTRING_INDEX(SUBSTRING_INDEX(SUBSTRING_INDEX(SUBSTRING_INDEX(REPLACE(url, "www.", ""), '/', 3), '://', -1), '.', -3), '?', 1)
-		    	) AS domain,
-            COUNT(id) AS n
-        FROM
-            event_urls
-        GROUP BY
-        	domain
-    ) AS x
-) AS y
-GROUP BY
-    otherDomain
-ORDER BY
-    CASE WHEN otherDomain = 'Others' THEN 1 ELSE 0 END,
-    SUM(n) DESC
+		    	) AS modifyUrl,
+	        COUNT(id) AS n
+	    FROM
+	        event_urls
+	    GROUP BY
+	    	modifyUrl
+	) AS subq
+GROUP BY Domain
 ```
 
 ## How to run the program
